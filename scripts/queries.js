@@ -55,7 +55,6 @@ const queriesObj = {
         ORDER BY amount DESC 
         LIMIT 4
         ;
-    
     `
 }
 
