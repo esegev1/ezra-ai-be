@@ -1,6 +1,7 @@
 {
   "name": "ezra-ai-be",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -13,9 +14,14 @@
   "dependencies": {
     "@types/recharts": "^1.8.29",
     "cors": "^2.8.5",
+    "csv-parser": "^3.2.0",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "multer": "^2.0.2",
+    "openai": "^6.15.0",
     "pg": "^8.16.3",
-    "recharts": "^3.6.0"
+    "postgresql": "^0.0.1",
+    "recharts": "^3.6.0",
+    "xlsx": "^0.18.5"
   }
 }

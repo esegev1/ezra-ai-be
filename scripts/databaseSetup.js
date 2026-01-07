@@ -84,6 +84,21 @@ const createDatabase = async () => {
                 )
             ;
         `,
+        creditCards: `
+            CREATE TABLE IF NOT EXISTS credit_cards
+                (
+                    id SERIAL PRIMARY KEY,
+                    account_id VARCHAR(100), 
+                    transaction_date DATE,
+                    post_date DATE,
+                    description VARCHAR(400),
+                    category VARCHAR(100),
+                    type VARCHAR(100),
+                    amount BIGINT,
+                    memo VARCHAR(200) 
+                )
+            ;
+        `,
         usersTable: `
             CREATE TABLE IF NOT EXISTS users
                 (
@@ -94,6 +109,7 @@ const createDatabase = async () => {
                 )
             ;
         `,
+        
     }
 
     //make sure database is created

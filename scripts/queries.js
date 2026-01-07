@@ -1,4 +1,4 @@
-const queriesObj = {
+export const queriesObj = {
     budget: `
         WITH income AS (
             SELECT 
@@ -58,9 +58,6 @@ const queriesObj = {
     `
 }
 
-
-
-module.exports = queriesObj;
 
 
 

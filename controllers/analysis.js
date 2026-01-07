@@ -1,9 +1,9 @@
 //Pools handle multiple connections in postgres
-const { Pool } = require('pg')
-const queries = require('../scripts/queries');
+import pg from 'pg';
+import { queriesObj } from '../scripts/queries.js'
 
 //Database connection
-const pool = new Pool({
+const pool = new pg.Pool({
     user: 'ericsegev',
     host: 'localhost',
     database: 'ezra_ai',
@@ -11,11 +11,14 @@ const pool = new Pool({
     port: 5432
 });
 
+// const queries = require('../scripts/queries');
 
-const show = async (req, res) => {
+
+export const show = async (req, res) => {
     console.log(`request`);
     const type = req.params.type;
     const acctId = req.params.userAcctId;
+    const queries = queriesObj;
 
     if (type === 'budgetlang') {
         //pull out budget numbers (can be refactored later)
@@ -53,8 +56,4 @@ const show = async (req, res) => {
     }
     
     // res.json(results.rows)
-}
-
-module.exports = {
-    show
 }

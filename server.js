@@ -1,48 +1,51 @@
-const cors = require('cors');
+/**
+ * server.js
+ * -----------------------------------------------------------------------------
+ * Converted to ES Modules (ESM) to support modern 'import' syntax
+ * and integration with the OpenAI controller.
+ */
 
-const dotenv = require('dotenv')
-dotenv.config()
+import 'dotenv/config'; // Automatically loads .env
+import express from 'express';
+import cors from 'cors';
 
-//Pools handle multiple connections in postgres
-const { Pool } = require('pg')
+// Import your controllers
+// NOTE: When using ESM, you MUST include the file extension (e.g., .js or .mjs)
+import * as configurationCtrl from './controllers/configuration.js';
+import * as analysisCtrl from './controllers/analysis.js';
+import * as openaiCtrl from './controllers/openai.mjs';
 
-const express = require('express')
-const app = express()
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-// Parse JSON in request body
+// -----------------------------------------------------------------------------
+// Middleware
+// -----------------------------------------------------------------------------
+
 app.use(express.json());
-
-// Enable CORS (allow requests from other domains)
 app.use(cors());
 
-//Run various analysis on user data
-// const analysisCtrl = require('./controllers/analysis');
-// app.get('/analysis/budget', analysisCtrl.budget);
+// -----------------------------------------------------------------------------
+// Routes
+// -----------------------------------------------------------------------------
 
-//Database connection
-const pool = new Pool ({
-    user: 'ericsegev',
-    host: 'localhost',
-    database: 'ezra_ai',
-    password: '',
-    port: 5432
-});
-
-const PORT = process.env.PORT
-
-const configurationCtrl = require('./controllers/configuration');
-const analysisCtrl = require('./controllers/analysis');
-
-//Interactions with the configuration tables
-app.get('/config/:userAcctId', configurationCtrl.index)
+// Interactions with the configuration tables
+app.get('/config/:userAcctId', configurationCtrl.index);
 app.post('/config/:table', configurationCtrl.create);
-app.put('/config/:table/:field/:id', configurationCtrl.update)
+app.put('/config/:table/:field/:id', configurationCtrl.update);
 app.delete('/config/:table/:id', configurationCtrl.deleteRecord);
 
+// Simple analysis based on queries
+app.get('/analysis/:type/:userAcctId', analysisCtrl.show);
 
-//Product data for a specific analysis
-app.get('/analysis/:type/:userAcctId', analysisCtrl.show)
+// AI based analysis (The SSE Pipeline)
+app.post('/openai', openaiCtrl.question);
+
+// -----------------------------------------------------------------------------
+// Start Server
+// -----------------------------------------------------------------------------
 
 app.listen(PORT, () => {
-    console.log(`Server running on https://localhost: ${PORT}`)
-})
+    console.log(`Server running on http://localhost:${PORT}`);
+});
+
