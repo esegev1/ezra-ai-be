@@ -165,7 +165,7 @@ const getFinancialSnapshot = async (accountId) => {
                 `SELECT
                     TO_CHAR(transaction_date, 'Month') name, 
                     category, 
-                    SUM(amount) amount
+                    SUM(amount) value
                 FROM credit_cards
                 WHERE account_id = $1 
                 GROUP BY 1,2;`,
@@ -213,7 +213,7 @@ const totalFixedCosts = fixedCosts.reduce((sum, { amount }) => sum + Number(amou
 const totalMonthlyIncome = incomes.reduce((sum, { monthlyAmount }) => sum + Number(monthlyAmount || 0), 0);
 const totalAssets = assets.reduce((sum, { value }) => sum + Number(value || 0), 0);
 const totalLiabilities = liabilities.reduce((sum, { value }) => sum + Number(value || 0), 0);
-const totalSpending = spending.reduce((sum, { amount }) => sum + Number(amount || 0), 0);
+const totalSpending = spending.reduce((sum, { value }) => sum + Number(value || 0), 0);
 
 return {
     fixedCosts,
@@ -346,10 +346,11 @@ const FINANCIAL_PLAN_SCHEMA = {
                 properties: {
                     monthly_income: { type: "number" },
                     fixed_costs: { type: "number" },
+                    monthly_spending: { type: "number" },
                     monthly_cashflow: { type: "number" },
                     net_worth: { type: "number" },
                 },
-                required: ["monthly_income", "fixed_costs", "monthly_cashflow", "net_worth"],
+                required: ["monthly_income", "fixed_costs", "monthly_spending", "monthly_cashflow", "net_worth"],
             },
             diagnosis: {
                 type: "array",
@@ -424,10 +425,12 @@ const AGENT_CONFIGS = {
         systemPrompt: [
             "You are a financial advisor who believes in the importance of saving for the future and the value of compounding interest",
             "You receive a snapshot of a user's finances.",
-            "Your job: identify the most important story in the numbers and produce a prioritized plan.",
+            "Your job: Answer the user's questions based on the financial snapshot.",
+            "be realistic abiout their financial situation and what is best for them.", 
+            "Determine what is best for them by optimizing for their future",
+            "look at their total spending as part of their monthly budget",
             "Important rules:",
-            "- Use the provided data as truth; do not invent numbers.",
-            "- If variable spend is missing, explicitly note what you can and cannot conclude.",
+            "- Use the provided data as truth; do not invent numbers.",,
             "- Keep actions concrete and high leverage.",
             "Reference the numbers and math based on the numbers from the snapshot in your response."
         ].join("\n"),
@@ -445,6 +448,7 @@ const AGENT_CONFIGS = {
             "Avoid guilt, avoid catastrophizing, and use 'small wins' framing.",
             "Keep the plan practical and specific.",
             "Keep actions aligned with the plan (no new actions unless absolutely necessary).",
+            "IMPORTANT: Do not come up with your own finanicial guidance, rely on the financial advisor for that.",
         ].join("\n"),
         startMessage: "💡 Next, our behavioral specialist is thinking through the perfect way to explain the data...",
         completeMessage: "✅ Behavioral coaching complete",
@@ -458,6 +462,7 @@ const AGENT_CONFIGS = {
             "Make it skimmable and 'dashboard-like': headings, bullets, short paragraphs.",
             "Make sure to include specific metrics and calculations from the data you recieved form the financial expert",
             "Call out: key metrics, what’s going well, the 3–5 next best moves, and what to track next.",
+            "IMPORTANT: Do not come up with your own finanicial guidance, rely on the financial advisor for that.",
             "Do NOT mention internal agents or schemas.",
         ].join("\n"),
         startMessage: "✍️ Lastly, our experts are preparing their fidnings for you...",
@@ -608,6 +613,7 @@ export const question = async (req, res) => {
 
         // 3) Fetch Data
         const snapshot = await getFinancialSnapshot(accountId);
+        console.log("snapshot: ", snapshot)
         // const compactSnapshot = compactSnapshotForLLM(snapshot);
 
         // 4) If client disconnected already, end cleanly

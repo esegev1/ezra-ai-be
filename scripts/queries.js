@@ -36,14 +36,25 @@ export const queriesObj = {
             FROM fixed_costs
             WHERE account_id=$1
             GROUP BY 1
+        ),
+        spending AS (
+            SELECT
+                account_id,
+                SUM(amount) spending
+            FROM credit_cards
+            WHERE account_id = $1 
+            GROUP BY 1
         )
         SELECT 
             a.monthly_income,
             b.housing_expenses,
-            b.other_expenses
+            b.other_expenses,
+            c.spending
         FROM income a
         LEFT JOIN fixed_costs b
             ON a.account_id = b.account_id
+        LEFT JOIN spending c
+            ON a.account_id = c.account_id
         ;    
     `,
     topcosts: `
