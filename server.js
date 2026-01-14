@@ -39,7 +39,7 @@ app.delete('/config/:table/:id', configurationCtrl.deleteRecord);
 app.get('/analysis/:type/:userAcctId', analysisCtrl.show);
 
 // AI based analysis (The SSE Pipeline)
-app.post('/openai', openaiCtrl.question);
+app.post('/openai', openaiCtrl.create);
 
 // -----------------------------------------------------------------------------
 // Start Server
