@@ -2,12 +2,23 @@ import "dotenv/config";
 import { getFinancialSnapshot } from '../services/financialSnapshot.js'
 import { classifyQuestion, routeToExperts, runExpertAnalysis, streamFinalAnalysis } from '../services/agentRouting.js'
 
+const expertData = {
+    financial_analyst: {icon: '💼', name: "Financial Analyst"},
+    behavioral_economist: {icon: '🎓', name: "Behavioral Economist"},
+    debt_strategist: {icon: '🏛️', name: "Debt Strategist"},
+    tax_optimizer: {icon: '🧮', name: "Tax Optimizer"},
+    lifestyle_auditor: {icon: '🔍', name: "Lifestyle Auditor"},
+    goal_architect: {icon: '🧩', name: "Goal Architect"}
+}
+
 const runExpertsStatusOnly = async ({ experts, question, snapshot, sendStatus }) => {
   return Promise.all(
     experts.map(async (expert) => {
-      sendStatus(`${expert} started...`);
+      const expertIcon = expertData[expert].icon;
+      const expertName = expertData[expert].name;
+      sendStatus(`${expertIcon}${expertName} has started...`);
       const expertResponse = await runExpertAnalysis(expert, question, snapshot);
-      sendStatus(`${expert} finished.`);
+      sendStatus(`${expertIcon}${expertName} has finished.`);
       return expertResponse;
     })
   );
@@ -105,7 +116,7 @@ export const create = async (req, res) => {
   // ---------------------------------------------------------
   try {
     // ---- 1. Fetch financial snapshot (DB / aggregation work)
-    sendStatus(`Fetching financial data for account ${accountId}...`);
+    sendStatus(`📈Fetching financial data for account ${accountId}...`);
 
     const snapshot = await step("getFinancialSnapshot", () =>
       getFinancialSnapshot(accountId)
@@ -116,7 +127,7 @@ export const create = async (req, res) => {
 
     // ---- 2. Classify the user's question
     // Determines question type, sentiment, and data needs
-    sendStatus("Routing your question to the right expert...");
+    sendStatus("📡Routing your question to the right expert...");
 
     const classification = await step("classifyQuestion", () =>
       classifyQuestion(question, snapshot)
@@ -150,13 +161,14 @@ export const create = async (req, res) => {
     // ---- 5. Final agent (STREAMING)
     // This is the only agent whose text output
     // is streamed token-by-token back to the client.
+    sendStatus('🎯The experts are all done, putting together final answer...')
     await step("streamFinalAnalysis", () =>
       streamFinalAnalysis({
         expertResponses,
         question,
         classification,
         res,
-        sendStatus,
+        snapshot,
       })
     );
 

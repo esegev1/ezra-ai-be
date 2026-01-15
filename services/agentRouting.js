@@ -16,14 +16,6 @@ const MODEL_CONFIG = {
     editor: "gpt-4.1",          // High quality for the user-facing response
 };
 
-const QUESTION_TYPES = {
-  SIMPLE_LOOKUP: 'simple_lookup',      // "What's my net worth?"
-  CALCULATION: 'calculation',           // "What's my savings rate?"
-  ANALYSIS: 'analysis',                 // "Am I on track?"
-  RECOMMENDATION: 'recommendation',     // "Should I buy a car?"
-  COMPLEX: 'complex'                    // "Retirement planning strategy?"
-};
-
 const INTENT_ROUTER_SCHEMA = {
   question_type: ['lookup', 'calculation', 'analysis', 'future_planning', 'tax'],
   emotional_state: ['anxious', 'motivated', 'defensive', 'curious'],
@@ -35,7 +27,7 @@ export const classifyQuestion = async (question, snapshot) => {
     model: MODEL_CONFIG.router,
     messages: [{
       role: "system",
-      content: ` Pick the item from each array that best describes the user's question for each category/key in the object: ${INTENT_ROUTER_SCHEMA}.
+      content: ` Pick the item from each array that best describes the user's question for each category/key in the object: ${JSON.stringify(INTENT_ROUTER_SCHEMA)}.
       
                 Use the below to understand how to determine the question type:
                 lookups: Can be answered with 1-2 numbers from the Available data.
@@ -134,7 +126,7 @@ You must output your analysis in the specific JSON format provided.`
       },
       {
         role: "user",
-        content: `Question: ${question}\nData to review:\n${snapshot}`
+        content: `Question: ${question}\nData to review:\n${JSON.stringify(snapshot)}`
       }
     ],
     response_format: {
@@ -148,6 +140,7 @@ You must output your analysis in the specific JSON format provided.`
   });
 
   const parsedData = JSON.parse(response.choices[0].message.content);
+  console.log("parsedData: ", parsedData);
   return { expertId: expert, data: parsedData };
 };
 
@@ -171,19 +164,21 @@ export const runFinalAnalysis = async (expertResponses, question, classification
 }
 
 
-export const streamFinalAnalysis = async ({ expertResponses, question, classification, res, sendStatus }) => {
-  sendStatus("Final expert started...");
-
+export const streamFinalAnalysis = async ({ expertResponses, question, classification, res, snapshot }) => {
   const input = [
     {
       role: "system",
-      content: "You are the final expert. Use the other experts' results. Stream a clear final answer."
+      content: `You are the final expert. Use the other experts' results. Stream a clear final answer.
+                Results from other experts: ${JSON.stringify(expertResponses)} 
+                Use this snapshot as reference data about the user: ${JSON.stringify(snapshot)}`
     },
     {
       role: "user",
-      content: JSON.stringify({ question, classification, expertResponses })
+      content: JSON.stringify({ question, classification})
     }
   ];
+
+  // console.log("input: ", input);
 
   const stream = await client.responses.create({
     model: "gpt-4.1-mini", // pick your model
@@ -200,7 +195,7 @@ export const streamFinalAnalysis = async ({ expertResponses, question, classific
 
     if (event.type === "response.completed") {
       // Optional: final status
-      sendStatus("Final expert finished.");
+    //   sendStatus("Final expert finished.");
     }
   }
 
